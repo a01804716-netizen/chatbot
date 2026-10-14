@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coach de Feedback · Evaluación del Desempeño con EPM</title>
+<style>
+:root{--bg:#f0f7f2;--card:#fff;--ink:#12261a;--mut:#5b6f62;--line:#d3e5d9;--acc:#1f8a4c;--acc2:#166534;--bot:#fff;--usr:#166534;--usrt:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a13;--card:#16251c;--ink:#e8f3ec;--mut:#97ae9f;--line:#25392c;--acc:#34c06f;--acc2:#5fd08e;--bot:#1d3024;--usr:#15803d;--usrt:#fff}}
+:root[data-theme="dark"]{--bg:#0e1a13;--card:#16251c;--ink:#e8f3ec;--mut:#97ae9f;--line:#25392c;--acc:#34c06f;--acc2:#5fd08e;--bot:#1d3024;--usr:#15803d;--usrt:#fff}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.app{max-width:860px;height:100%;margin:0 auto;display:flex;flex-direction:column;padding:0 12px}
+header{padding:14px 4px 8px;display:flex;align-items:center;gap:10px}
+.logo{width:38px;height:38px;border-radius:10px;background:var(--acc);color:#fff;display:grid;place-items:center;font-weight:700}
+h1{font-size:17px;margin:0;line-height:1.2}
+header small{color:var(--mut);display:block;font-size:12.5px}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:thin}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+.chip:hover{border-color:var(--acc)}
+.chip.on{background:var(--acc2);color:#fff;border-color:var(--acc2)}
+details{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:8px;padding:8px 12px;font-size:13px}
+summary{cursor:pointer;font-weight:600}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;margin-top:8px;min-width:420px}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--mut);font-weight:600}
+#chat{flex:1;overflow-y:auto;padding:8px 2px;display:flex;flex-direction:column;gap:10px}
+.m{max-width:88%;padding:10px 14px;border-radius:16px;word-wrap:break-word}
+.m p{margin:0 0 8px}.m p:last-child{margin:0}
+.m ul,.m ol{margin:4px 0 8px;padding-left:20px}
+.bot{align-self:flex-start;background:var(--bot);border:1px solid var(--line);border-bottom-left-radius:4px}
+.usr{align-self:flex-end;background:var(--usr);color:var(--usrt);border-bottom-right-radius:4px;white-space:pre-wrap}
+.err{align-self:center;color:var(--acc);font-size:13px;text-align:center}
+.dots span{display:inline-block;width:6px;height:6px;margin-right:3px;border-radius:50%;background:var(--mut);animation:b 1s infinite}
+.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,60%,100%{opacity:.3}30%{opacity:1}}
+.quick{display:flex;gap:6px;flex-wrap:wrap;padding:4px 2px}
+.bar{display:flex;gap:8px;padding:8px 0 10px}
+textarea{flex:1;resize:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:10px 14px;font:inherit;max-height:120px}
+textarea:focus{outline:2px solid var(--acc2);outline-offset:0}
+#send{border:0;background:var(--acc);color:#fff;border-radius:14px;padding:0 18px;font-weight:600;cursor:pointer}
+#send:disabled{opacity:.5;cursor:default}
+.note{font-size:11.5px;color:var(--mut);text-align:center;padding-bottom:6px}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div class="logo">CF</div>
+  <div><h1>Coach de Feedback</h1><small>Capacitación para líderes · Evaluación del desempeño con EPM ético</small></div>
+</header>
+
+<div class="chips" id="mods"></div>
+
+<details>
+  <summary>📊 Tablero KPI de ejemplo (datos ilustrativos)</summary>
+  <div class="tw"><table>
+    <tr><th>KPI</th><th>Meta</th><th>Fuente EPM</th></tr>
+    <tr><td>Entregables a tiempo</td><td>≥ 90%</td><td>Gestión de proyectos</td></tr>
+    <tr><td>Calidad (retrabajo)</td><td>≤ 5%</td><td>Sistemas de QA</td></tr>
+    <tr><td>Respuesta a solicitudes</td><td>≤ 4 h hábiles</td><td>Metadatos de mensajería</td></tr>
+    <tr><td>Colaboración</td><td>≥ 80%</td><td>Calendario y revisiones</td></tr>
+    <tr><td>Desarrollo</td><td>≥ 4 h/mes</td><td>LMS</td></tr>
+  </table></div>
+  <p style="margin:8px 0 0;color:var(--mut)">No se monitorean teclas, capturas de pantalla, cámara, micrófono, contenido de mensajes ni navegación personal.</p>
+</details>
+
+<div id="chat" aria-live="polite"></div>
+<div class="quick" id="quick"></div>
+<div class="bar">
+  <textarea id="inp" rows="1" placeholder="Escribe tu mensaje o duda…"></textarea>
+  <button id="send">Enviar</button>
+</div>
+<div class="note">Contenido ilustrativo con fines de capacitación. Para dudas legales consulta a RH y al área jurídica.</div>
+</div>
+
+<script>
+const WELCOME = "¡Hola! 👋 Soy tu **Coach de Feedback**. Te acompañaré unos 15 minutos para que conduzcas evaluaciones del desempeño que fortalezcan a tu equipo, incluso cuando haya tensión.\n\nPuedes seguir el recorrido en orden o saltar a cualquier tema con los botones de arriba. Para empezar: **¿cómo te llamas y cuántas personas lideras?**";
+
+const MODS = [
+ ["1 · Bienvenida","Quiero empezar el recorrido desde la bienvenida."],
+ ["2 · Puesto y evaluador","Explícame el puesto a evaluar y quién debe hacer la evaluación."],
+ ["3 · Evaluación justa","¿Cuáles son las mejores prácticas para evaluaciones estandarizadas y justas?"],
+ ["4 · KPIs y EPM","Explícame los KPIs, el tablero y cómo se obtienen los datos con EPM."],
+ ["5 · Planear entrevista","¿Cómo planeo una entrevista de retroalimentación?"],
+ ["6 · Crítica constructiva","Dame tips para una retroalimentación exitosa y una crítica constructiva."],
+ ["7 · Técnica 360°","¿Qué técnica complementaria debe apoyar al sistema EPM?"],
+ ["🎭 Simulación","Quiero practicar: simula una entrevista con un colaborador que cuestiona el tablero."]
+];
+const QUICK = ["¿Y si mi colaborador dice que el tablero es injusto?","¿Puedo instalar un keylogger para vigilarlos?","Dame una lista de verificación"];
+
+const chat=document.getElementById('chat'),inp=document.getElementById('inp'),btn=document.getElementById('send');
+const hist=[{role:'assistant',content:WELCOME}];
+let busy=false;
+
+function esc(s){return s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function inline(s){return esc(s).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/(^|[\s(])\*(?!\s)(.+?)\*(?=[\s).,;:!?]|$)/g,'$1<em>$2</em>')}
+function md(t){
+  const out=[];let list=null;
+  const close=()=>{if(list){out.push('</'+list+'>');list=null}};
+  for(const raw of t.split('\n')){
+    const l=raw.trim();let m;
+    if((m=l.match(/^[-•*]\s+(.*)/))){if(list!=='ul'){close();out.push('<ul>');list='ul'}out.push('<li>'+inline(m[1])+'</li>')}
+    else if((m=l.match(/^\d+[.)]\s+(.*)/))){if(list!=='ol'){close();out.push('<ol>');list='ol'}out.push('<li>'+inline(m[1])+'</li>')}
+    else if(!l){close()}
+    else{close();out.push('<p>'+inline(l.replace(/^#+\s*/,''))+'</p>')}
+  }
+  close();return out.join('')
+}
+function add(role,text){
+  const d=document.createElement('div');d.className='m '+(role==='user'?'usr':'bot');
+  if(role==='user')d.textContent=text;else d.innerHTML=md(text);
+  chat.appendChild(d);chat.scrollTop=chat.scrollHeight;return d
+}
+function note(t){const d=document.createElement('div');d.className='err';d.textContent=t;chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
+
+async function send(text){
+  text=(text||'').trim();if(!text||busy)return;
+  busy=true;btn.disabled=true;
+  add('user',text);hist.push({role:'user',content:text});
+  document.getElementById('quick').style.display='none';
+  const b=add('bot','');b.innerHTML='<span class="dots"><span></span><span></span><span></span></span>';
+  try{
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist.slice(1)})});
+    if(!res.ok)throw {status:res.status};
+    const r=await res.json();
+    b.innerHTML=md(r.text);hist.push({role:'assistant',content:r.text});
+  }catch(e){
+    b.remove();hist.pop();
+    note(e&&e.status===429?'Demasiadas solicitudes. Espera unos segundos e inténtalo de nuevo.':'No pude responder. Intenta de nuevo.');
+  }
+  busy=false;btn.disabled=false;inp.focus();
+}
+
+// UI
+const modsEl=document.getElementById('mods');
+MODS.forEach(([l,p])=>{const c=document.createElement('button');c.className='chip';c.textContent=l;c.onclick=()=>{[...modsEl.children].forEach(x=>x.classList.remove('on'));c.classList.add('on');send(p)};modsEl.appendChild(c)});
+const q=document.getElementById('quick');
+QUICK.forEach(t=>{const c=document.createElement('button');c.className='chip';c.textContent=t;c.onclick=()=>send(t);q.appendChild(c)});
+btn.onclick=()=>{const v=inp.value;inp.value='';inp.style.height='auto';send(v)};
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();btn.click()}});
+inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,120)+'px'});
+add('assistant',WELCOME);
+
+
+</script>
+</body>
+</html>
